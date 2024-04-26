@@ -6,7 +6,7 @@ interface ParagraphComponentProps {
 
 const ParagraphComponent = ({ content }: ParagraphComponentProps) => {
   return (
-    <Box sx={{ margin: "2% 2%" }}>
+    <Box sx={{ margin: "1.5% 2%", textIndent: "2%" }}>
       {content}
     </Box>
   );

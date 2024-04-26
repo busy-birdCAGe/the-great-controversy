@@ -5,7 +5,7 @@ interface TitleComponentProps {
 }
 
 const TitleComponent = ({ content }: TitleComponentProps) => {
-  return <Box sx={{ textAlign: "center", margin: "2% 2%", fontSize: "2rem" }}>{content}</Box>;
+  return <Box sx={{ textAlign: "center", margin: "1.5% 2%", fontSize: "2rem" }}>{content}</Box>;
 };
 
 export default TitleComponent;

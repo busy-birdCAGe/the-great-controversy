@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Box } from "@mui/material";
 import ParagraphComponent from "./Paragraph";
-import book from "../public/book.json";
+import book from "./book.json";
 import TitleComponent from "./Title";
 import { BsFillArrowLeftSquareFill, BsFillArrowRightSquareFill } from "react-icons/bs";
 import useDetectScroll from "@smakss/react-scroll-direction";
@@ -51,7 +51,7 @@ function App() {
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
-    const newIndex = parseInt(queryParams.get("index") || "", 10);
+    const newIndex = parseInt(queryParams.get("index") || "2", 10);
     changeIndex(newIndex);
   }, []);
 

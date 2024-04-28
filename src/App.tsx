@@ -3,12 +3,15 @@ import { Box } from "@mui/material";
 import ParagraphComponent from "./Paragraph";
 import book from "./book.json";
 import TitleComponent from "./Title";
-import { BsFillArrowLeftSquareFill, BsFillArrowRightSquareFill } from "react-icons/bs";
-import useDetectScroll from "@smakss/react-scroll-direction";
+import {
+  BsFillArrowLeftSquareFill,
+  BsFillArrowRightSquareFill,
+} from "react-icons/bs";
+import useDetectScroll, { Direction } from "@smakss/react-scroll-direction";
 
 interface Paragraph {
   paragraph: string;
-  content: string
+  content: string;
 }
 
 interface Chapter {
@@ -16,43 +19,61 @@ interface Chapter {
   paragraphs: Array<Paragraph>;
 }
 
-interface NavVisibility {
-  left: number
-  right: number
-}
-
 function App() {
-  const [index, setIndex] = useState<number>(2);
+
+  const getIndexFromStorage = (): number | null => {
+    const indexString = localStorage.getItem("index");
+    return indexString ? parseInt(indexString, 10) : null
+  };
+
+  const getIndexFromUrl = (): number | null => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const indexString = queryParams.get("index");
+    return indexString ? parseInt(indexString, 10) : null;
+  };
+
+  const getInitialIndex = (): number => {
+    return getIndexFromUrl() ?? getIndexFromStorage() ?? 2
+  }
+
+  const [index, setIndex] = useState<number>(getInitialIndex());
   const [bookData, setBookData] = useState<Chapter | null>(null);
-
-  const [navVisibility, setNavVisibility] = useState<NavVisibility>({
-    left: 1,
-    right: 1,
-  });
-
   const { scrollDir } = useDetectScroll();
 
   const changeIndex = (newIndex: number) => {
-    if (!isNaN(newIndex) && newIndex >= 0 && newIndex <= book.length - 1) {
-      if (newIndex == 0) {
-        setNavVisibility({ left: 0, right: 1 });
-      } else if (newIndex == book.length - 1) {
-        setNavVisibility({ left: 1, right: 0 });
-      }
-      if (book[newIndex]) {
-        setBookData(book[newIndex]);
-      }
-      const url = new URL(window.location.href);
-      url.searchParams.set("index", newIndex.toString());
-      window.history.pushState(null, "", url.toString());
-      setIndex(newIndex);
+    if (newIndex > book.length - 1) {
+      newIndex = book.length - 1;
+    } else if (newIndex < 0) {
+      newIndex = 0;
     }
+    if (book[newIndex]) {
+      setBookData(book[newIndex]);
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("index", newIndex.toString());
+    window.history.pushState(null, "", url.toString());
+    setIndex(newIndex);
+  };
+
+  const arrowOpacity = (
+    scrollDir: Direction,
+    index: number,
+    rightArrow: boolean
+  ): number => {
+    let baseOpacity = scrollDir == "down" ? 25 : 75;
+    let indexModifier =
+      (rightArrow && index >= book.length - 1) || (!rightArrow && index <= 0)
+        ? 0
+        : 1;
+    return baseOpacity * indexModifier;
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo(0, 0);
   }
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const newIndex = parseInt(queryParams.get("index") || "2", 10);
-    changeIndex(newIndex);
+    changeIndex(index);
   }, []);
 
   return (
@@ -69,11 +90,12 @@ function App() {
           top: 0,
           left: 0,
           margin: "0.5% 0.5%",
-          opacity: `${navVisibility.left * (scrollDir == "down" ? 25 : 75)}%`,
+          opacity: `${arrowOpacity(scrollDir, index, false)}%`,
           transition: "opacity 0.25s ease",
         }}
         onClick={() => {
           changeIndex(index - 1);
+          scrollToTop();
         }}
       />
       <BsFillArrowRightSquareFill
@@ -82,11 +104,12 @@ function App() {
           top: 0,
           right: 0,
           margin: "0.5% 0.5%",
-          opacity: `${navVisibility.right * (scrollDir == "down" ? 25 : 75)}%`,
+          opacity: `${arrowOpacity(scrollDir, index, true)}%`,
           transition: "opacity 0.25s ease",
         }}
         onClick={() => {
           changeIndex(index + 1);
+          scrollToTop();
         }}
       />
       {bookData && <TitleComponent content={bookData.paragraphs[0].content} />}
